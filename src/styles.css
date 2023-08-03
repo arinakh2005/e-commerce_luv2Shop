@@ -126,6 +126,9 @@ aside.menu-sidebar.d-none.d-lg-block.clr {
     height: 75px;
     box-shadow: -2px 0 4px #0000003b;
 }
+.background-primary {
+    background: var(--bs-primary) !important;
+}
 
 /*
  * ----------------------------
