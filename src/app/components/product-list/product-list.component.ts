@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ProductService } from '../../services/product.service';
+import { GetResponseProducts, ProductService } from '../../services/product.service';
 import { Product } from '../../common/product';
 import { ActivatedRoute } from '@angular/router';
 
@@ -11,9 +11,16 @@ import { ActivatedRoute } from '@angular/router';
 export class ProductListComponent implements OnInit {
 
   public products: Product[] = [];
+  public previousCategoryId = 1;
   public currentCategoryId = 1;
-  public currentCategoryName = "";
+  public currentCategoryName = '';
   public searchMode = false;
+  public previousKeyword = '';
+
+  // Pagination properties
+  public thePageNumber = 1;
+  public thePageSize = 5;
+  public theTotalElements = 0;
 
   constructor(
     private readonly productService: ProductService,
@@ -26,7 +33,7 @@ export class ProductListComponent implements OnInit {
     });
   }
 
-  private listProducts(): void {
+  public listProducts(): void {
     this.searchMode = this.activatedRoute.snapshot.paramMap.has('keyword');
 
     if (this.searchMode) {
@@ -34,6 +41,12 @@ export class ProductListComponent implements OnInit {
     } else {
       this.handleListProducts();
     }
+  }
+
+  public updatePageSize(pageSize: string): void {
+    this.thePageSize = +pageSize;
+    this.thePageNumber = 1;
+    this.listProducts();
   }
 
   private handleListProducts(): void {
@@ -47,13 +60,31 @@ export class ProductListComponent implements OnInit {
       this.currentCategoryName = 'Books';
     }
 
-    this.productService.getProductList(this.currentCategoryId).subscribe((data) => this.products = data);
+    if (this.previousCategoryId !== this.currentCategoryId) this.thePageNumber = 1;
+
+    this.previousCategoryId = this.currentCategoryId;
+    this.productService.getProductListPaginate(
+      this.thePageNumber - 1, this.thePageSize, this.currentCategoryId,
+    ).subscribe(this.processResult());
   }
 
   private handleSearchProducts(): void {
     const theKeyword = this.activatedRoute.snapshot.paramMap.get('keyword')!;
 
-    this.productService.searchProducts(theKeyword)
-      .subscribe((data) => this.products = data);
+    if (this.previousKeyword !== theKeyword) this.thePageNumber = 1;
+
+    this.previousKeyword = theKeyword;
+    this.productService.searchProductsPaginate(
+      this.thePageNumber - 1, this.thePageSize, theKeyword,
+    ).subscribe(this.processResult());
+  }
+
+  private processResult(): (data: GetResponseProducts) => void {
+    return (data: GetResponseProducts) => {
+      this.products = data._embedded.products;
+      this.thePageNumber = data.page.number + 1;
+      this.thePageSize = data.page.size;
+      this.theTotalElements = data.page.totalElements;
+    };
   }
 }
