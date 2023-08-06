@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { CartItem } from '../common/cart-item';
-import { Subject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
 
 @Injectable()
 export class CartService {
   public cartItems: CartItem[] = [];
-  public totalPrice: Subject<number> = new Subject<number>();
-  public totalQuantity: Subject<number> = new Subject<number>();
+  public totalPrice: Subject<number> = new BehaviorSubject<number>(0);
+  public totalQuantity: Subject<number> = new BehaviorSubject<number>(0);
 
   public addToCart(theCartItem: CartItem): void {
     let isAlreadyExistInCart = false;
