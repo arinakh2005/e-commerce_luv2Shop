@@ -5,6 +5,11 @@ import { Country } from '../../common/country';
 import { State } from '../../common/state';
 import { Luv2ShopValidators } from '../../validators/luv2-shop-validators';
 import { CartService } from '../../services/cart.service';
+import { CheckoutService } from '../../services/checkout.service';
+import { Router } from '@angular/router';
+import { Order } from '../../common/order';
+import { OrderItem } from '../../common/order-item';
+import { Purchase } from '../../common/purchase';
 
 @Component({
   selector: 'app-checkout',
@@ -26,6 +31,8 @@ export class CheckoutComponent implements OnInit {
     private readonly formBuilder: FormBuilder,
     private readonly luv2ShopFormService: Luv2ShopFormService,
     private readonly cartService: CartService,
+    private readonly checkoutService: CheckoutService,
+    private readonly router: Router,
   ) { }
 
   public get firstName(): AbstractControl | null {
@@ -213,7 +220,47 @@ export class CheckoutComponent implements OnInit {
   public onSubmit(): void {
     if (this.checkoutFormGroup.invalid) {
       this.checkoutFormGroup.markAllAsTouched();
+
+      return;
     }
+
+    let order = new Order();
+    order.totalPrice = this.totalPrice;
+    order.totalQuantity = this.totalQuantity;
+
+    const cardItems = this.cartService.cartItems;
+    const orderItems: OrderItem[] = cardItems.map((cartItem) => new OrderItem(cartItem));
+    let purchase = new Purchase();
+
+    purchase.customer = this.checkoutFormGroup.controls['customer'].value;
+    purchase.shippingAddress = this.checkoutFormGroup.controls['shippingAddress'].value;
+    purchase.billingAddress = this.checkoutFormGroup.controls['billingAddress'].value;
+
+    const shippingState: State = JSON.parse(JSON.stringify(purchase.shippingAddress?.state));
+    const shippingCountry: State = JSON.parse(JSON.stringify(purchase.shippingAddress?.country));
+    const billingState: State = JSON.parse(JSON.stringify(purchase.billingAddress?.state));
+    const billingCountry: State = JSON.parse(JSON.stringify(purchase.billingAddress?.country));
+
+    if (purchase.shippingAddress) {
+      purchase.shippingAddress.state = shippingState.name;
+      purchase.shippingAddress.country = shippingCountry.name;
+    }
+
+    if (purchase.billingAddress) {
+      purchase.billingAddress.state = billingState.name;
+      purchase.billingAddress.country = billingCountry.name;
+    }
+
+    purchase.order = order;
+    purchase.orderItems = orderItems;
+
+    this.checkoutService.placeOrder(purchase).subscribe(
+      (response) => {
+        alert(`Your order has been received.\nOrder tracking number: ${response.orderTrackingNumber}`);
+        this.resetCart();
+      },
+      (error) => alert(`There was an error: ${error.message}`),
+    );
   }
 
   public copyShippingAddressToBillingAddress(isChecked: boolean): void {
@@ -271,5 +318,13 @@ export class CheckoutComponent implements OnInit {
     this.cartService.totalPrice.subscribe((totalPrice) =>
       this.totalPrice = totalPrice,
     );
+  }
+
+  private resetCart(): void {
+    this.cartService.cartItems = [];
+    this.cartService.totalPrice.next(0);
+    this.cartService.totalQuantity.next(0);
+    this.checkoutFormGroup.reset();
+    this.router.navigateByUrl('/products');
   }
 }
