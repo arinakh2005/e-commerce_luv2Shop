@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { OrderHistory } from '../common/order-history';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class OrderHistoryService {
 
-  private readonly orderUrl = 'http://localhost:8080/api/orders';
+  private readonly orderUrl = environment.luv2shopApiUrl + '/orders';
 
   constructor(private readonly httpClient: HttpClient) { }
 

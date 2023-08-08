@@ -3,12 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
 import { Product } from '../common/product';
 import { ProductCategory } from '../common/product-category';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class ProductService {
 
-  private readonly baseUrl = 'http://localhost:8080/api/products';
-  private readonly categoryUrl = 'http://localhost:8080/api/product-category';
+  private readonly baseUrl = environment.luv2shopApiUrl + '/products';
+  private readonly categoryUrl = environment.luv2shopApiUrl + '/product-category';
 
   constructor(private httpClient: HttpClient) { }
 

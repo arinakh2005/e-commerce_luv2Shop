@@ -3,6 +3,7 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Observable } from 'rxjs';
 import { OktaAuth } from '@okta/okta-auth-js';
 import { OKTA_AUTH } from '@okta/okta-angular';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class AuthInterceptorService implements HttpInterceptor {
@@ -15,7 +16,8 @@ export class AuthInterceptorService implements HttpInterceptor {
   public intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     let interceptedRequest = request;
 
-    const securedEndpoints = ['http://localhost:8080/api/orders'];
+    const ordersEndpoint = environment.luv2shopApiUrl + '/orders';
+    const securedEndpoints = [ordersEndpoint];
     const accessToken = 'Bearer ' + this.oktaAuth.getAccessToken();
 
     securedEndpoints.some((url) => {

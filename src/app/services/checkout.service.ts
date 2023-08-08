@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Purchase } from '../common/purchase';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class CheckoutService {
 
-  private readonly purchaseUrl = 'http://localhost:8080/api/checkout/purchase';
+  private readonly purchaseUrl = environment.luv2shopApiUrl + '/checkout/purchase';
 
   constructor(private readonly httpClient: HttpClient) { }
 
